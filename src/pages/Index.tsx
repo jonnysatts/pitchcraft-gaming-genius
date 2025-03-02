@@ -1,6 +1,7 @@
 
 import React, { useState } from 'react';
 import { toast } from '@/hooks/use-toast';
+import { useAuth } from '@/providers/AuthProvider';
 import Header from '@/components/Header';
 import Welcome from '@/components/Welcome';
 import FileUpload from '@/components/FileUpload';
@@ -40,10 +41,12 @@ interface Slide {
 }
 
 const Index = () => {
+  const { user } = useAuth();
   const [currentStep, setCurrentStep] = useState<Step>(Step.WELCOME);
   const [clientData, setClientData] = useState<ClientData | null>(null);
   const [narrativeSections, setNarrativeSections] = useState<NarrativeSection[]>([]);
   const [slides, setSlides] = useState<Slide[]>([]);
+  const [analysisResult, setAnalysisResult] = useState<any>(null);
   
   // Handle welcome form submission
   const handleWelcomeSubmit = (data: ClientData) => {
@@ -56,14 +59,14 @@ const Index = () => {
   };
   
   // Handle file upload and analysis
-  const handleAnalyze = (files: File[], url: string) => {
-    // In a real implementation, this would send the files/URL to an API
-    // For now, we'll simulate processing and move to the next step
+  const handleAnalyze = (analysis: any) => {
+    // Store the analysis result
+    setAnalysisResult(analysis);
+    setCurrentStep(Step.NARRATIVE);
     toast({
       title: "Analysis complete",
       description: "Materials have been processed successfully",
     });
-    setCurrentStep(Step.NARRATIVE);
   };
   
   // Skip the file upload step
@@ -152,7 +155,15 @@ const Index = () => {
       case Step.WELCOME:
         return <Welcome onStart={handleWelcomeSubmit} />;
       case Step.FILE_UPLOAD:
-        return <FileUpload onAnalyze={handleAnalyze} onSkip={handleSkipFileUpload} />;
+        return (
+          <FileUpload 
+            clientName={clientData?.clientName || ''} 
+            industry={clientData?.industry || ''} 
+            onAnalyze={handleAnalyze} 
+            onSkip={handleSkipFileUpload} 
+            onBack={handleBack}
+          />
+        );
       case Step.NARRATIVE:
         return <NarrativeBuilder onComplete={handleNarrativeComplete} onBack={handleBack} />;
       case Step.PREVIEW:
