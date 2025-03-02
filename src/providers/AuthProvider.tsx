@@ -5,10 +5,14 @@ import { AuthUser, getCurrentUser, onAuthStateChange } from '@/services/auth';
 interface AuthContextType {
   user: AuthUser | null;
   isLoading: boolean;
-  setUser: React.Dispatch<React.SetStateAction<AuthUser | null>>;
 }
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+const AuthContext = createContext<AuthContextType>({
+  user: null,
+  isLoading: true,
+});
+
+export const useAuth = () => useContext(AuthContext);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<AuthUser | null>(null);
@@ -28,27 +32,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     fetchUser();
 
-    const { data: authListener } = onAuthStateChange((updatedUser) => {
-      setUser(updatedUser);
+    // Set up Supabase auth listener
+    const { data: authListener } = onAuthStateChange((authUser) => {
+      setUser(authUser);
       setIsLoading(false);
     });
 
+    // Clean up subscription
     return () => {
-      authListener?.subscription?.unsubscribe();
+      if (authListener && authListener.subscription) {
+        authListener.subscription.unsubscribe();
+      }
     };
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, isLoading, setUser }}>
+    <AuthContext.Provider value={{ user, isLoading }}>
       {children}
     </AuthContext.Provider>
   );
-};
-
-export const useAuth = (): AuthContextType => {
-  const context = useContext(AuthContext);
-  if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
-  return context;
 };
