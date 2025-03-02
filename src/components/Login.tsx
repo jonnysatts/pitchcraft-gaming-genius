@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
 import { signIn, signInWithGoogle } from '@/services/auth';
+import { AlertCircle } from 'lucide-react';
 
 const Login = () => {
   const navigate = useNavigate();
@@ -15,6 +16,7 @@ const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [googleError, setGoogleError] = useState<string | null>(null);
 
   const handleEmailSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -36,16 +38,23 @@ const Login = () => {
 
   const handleGoogleSignIn = async () => {
     setIsLoading(true);
+    setGoogleError(null);
     
     try {
       await signInWithGoogle();
       // The redirect will happen automatically
     } catch (error: any) {
-      toast({
-        title: "Authentication error",
-        description: error.message || "Failed to sign in with Google",
-        variant: "destructive"
-      });
+      console.error("Google sign-in error:", error);
+      
+      if (error.message?.includes("provider is not enabled")) {
+        setGoogleError("Google authentication is not enabled in this project. Please use email sign-in.");
+      } else {
+        toast({
+          title: "Authentication error",
+          description: error.message || "Failed to sign in with Google",
+          variant: "destructive"
+        });
+      }
       setIsLoading(false);
     }
   };
@@ -93,10 +102,17 @@ const Login = () => {
           </div>
         </div>
 
+        {googleError && (
+          <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded-md flex items-start">
+            <AlertCircle className="h-5 w-5 mr-2 flex-shrink-0 mt-0.5" />
+            <span className="text-sm">{googleError}</span>
+          </div>
+        )}
+
         <Button
           variant="outline"
           onClick={handleGoogleSignIn}
-          disabled={isLoading}
+          disabled={isLoading || !!googleError}
           className="w-full"
         >
           <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24">
