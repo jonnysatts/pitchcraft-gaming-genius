@@ -67,7 +67,7 @@ export function getInitialSections(analysis: AnalysisResult | null): any[] {
     },
     {
       id: 'current-landscape',
-      title: 'Client's Current Landscape',
+      title: "Client's Current Landscape",
       description: 'Assessment of challenges facing the client and competitive positioning in gaming context.',
       content: analysis ? generateCurrentLandscapeContent(analysis) : '',
       isCompleted: false
