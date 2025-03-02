@@ -8,7 +8,8 @@ import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
 import { signIn, signInWithGoogle } from '@/services/auth';
-import { AlertCircle } from 'lucide-react';
+import { AlertCircle, Info } from 'lucide-react';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 const Login = () => {
   const navigate = useNavigate();
@@ -47,7 +48,7 @@ const Login = () => {
       console.error("Google sign-in error:", error);
       
       if (error.message?.includes("provider is not enabled")) {
-        setGoogleError("Google authentication is not enabled in this project. Please use email sign-in.");
+        setGoogleError("Google authentication is not enabled in the Supabase project. Please use email sign-in or contact an administrator to enable Google authentication.");
       } else {
         toast({
           title: "Authentication error",
@@ -60,11 +61,21 @@ const Login = () => {
   };
 
   return (
-    <Card className="w-full max-w-md">
+    <Card className="w-full max-w-md mx-auto my-8">
       <CardHeader className="text-center">
-        <CardTitle className="text-2xl">Sign In to Your Account</CardTitle>
+        <CardTitle className="text-2xl">Sign In to Games Age Deck Builder</CardTitle>
       </CardHeader>
       <CardContent>
+        {googleError && (
+          <Alert variant="destructive" className="mb-6">
+            <AlertCircle className="h-4 w-4" />
+            <AlertTitle>Authentication Error</AlertTitle>
+            <AlertDescription>
+              {googleError}
+            </AlertDescription>
+          </Alert>
+        )}
+
         <form onSubmit={handleEmailSignIn} className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="email">Email</Label>
@@ -89,7 +100,7 @@ const Login = () => {
             />
           </div>
           <Button type="submit" className="w-full" disabled={isLoading}>
-            {isLoading ? 'Signing in...' : 'Sign In'}
+            {isLoading ? 'Signing in...' : 'Sign In with Email'}
           </Button>
         </form>
 
@@ -101,13 +112,6 @@ const Login = () => {
             <span className="bg-background px-2 text-muted-foreground">Or</span>
           </div>
         </div>
-
-        {googleError && (
-          <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded-md flex items-start">
-            <AlertCircle className="h-5 w-5 mr-2 flex-shrink-0 mt-0.5" />
-            <span className="text-sm">{googleError}</span>
-          </div>
-        )}
 
         <Button
           variant="outline"
@@ -136,6 +140,15 @@ const Login = () => {
           </svg>
           Sign in with Google
         </Button>
+
+        {!googleError && (
+          <div className="mt-4 flex items-start text-sm text-muted-foreground">
+            <Info className="h-4 w-4 mr-2 flex-shrink-0 mt-0.5" />
+            <p>
+              Google sign-in requires proper configuration in Supabase. If it's not working, please use email sign-in.
+            </p>
+          </div>
+        )}
       </CardContent>
     </Card>
   );
