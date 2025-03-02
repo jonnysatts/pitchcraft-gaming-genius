@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import CustomButton from './ui/Button';
+import Button from './ui/Button';
 import { cn } from '@/lib/utils';
 
 interface NarrativeSection {
@@ -188,7 +188,7 @@ const NarrativeBuilder = ({ onComplete, onBack }: NarrativeBuilderProps) => {
               
               <div className="flex justify-between mt-6">
                 <div className="flex space-x-3">
-                  <CustomButton
+                  <Button
                     variant="outline"
                     onClick={navigateToPrevious}
                     disabled={currentSectionIndex === 0}
@@ -199,9 +199,9 @@ const NarrativeBuilder = ({ onComplete, onBack }: NarrativeBuilderProps) => {
                     }
                   >
                     Previous
-                  </CustomButton>
+                  </Button>
                   
-                  <CustomButton
+                  <Button
                     onClick={navigateToNext}
                     disabled={currentSectionIndex === sections.length - 1}
                     rightIcon={
@@ -211,23 +211,23 @@ const NarrativeBuilder = ({ onComplete, onBack }: NarrativeBuilderProps) => {
                     }
                   >
                     Next
-                  </CustomButton>
+                  </Button>
                 </div>
                 
                 <div className="flex space-x-3">
-                  <CustomButton
+                  <Button
                     variant="outline"
                     onClick={onBack}
                   >
                     Back
-                  </CustomButton>
+                  </Button>
                   
-                  <CustomButton
+                  <Button
                     onClick={handleSubmit}
                     disabled={completedSections < sections.length}
                   >
                     Create Slides
-                  </CustomButton>
+                  </Button>
                 </div>
               </div>
             </div>

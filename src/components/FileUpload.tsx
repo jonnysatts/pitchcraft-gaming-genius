@@ -1,6 +1,5 @@
-
 import React, { useState } from 'react';
-import CustomButton from './ui/Button';
+import Button from './ui/Button';
 import { cn } from '@/lib/utils';
 
 interface FileUploadProps {
@@ -159,14 +158,14 @@ const FileUpload = ({ onAnalyze, onSkip }: FileUploadProps) => {
           </div>
           
           <div className="flex justify-between pt-4">
-            <CustomButton
+            <Button
               variant="outline"
               onClick={onSkip}
             >
               Skip This Step
-            </CustomButton>
+            </Button>
             
-            <CustomButton
+            <Button
               onClick={handleSubmit}
               disabled={files.length === 0 && !url}
               rightIcon={
@@ -176,7 +175,7 @@ const FileUpload = ({ onAnalyze, onSkip }: FileUploadProps) => {
               }
             >
               Analyze Materials
-            </CustomButton>
+            </Button>
           </div>
         </div>
       </div>

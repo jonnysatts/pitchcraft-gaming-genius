@@ -1,6 +1,5 @@
-
 import React, { useState } from 'react';
-import CustomButton from './ui/Button';
+import Button from './ui/Button';
 import { cn } from '@/lib/utils';
 
 interface Slide {
@@ -47,14 +46,14 @@ const SlidePreview = ({ slides, onExport, onBack }: SlidePreviewProps) => {
               Preview & Export
             </h1>
             <div className="flex items-center space-x-3">
-              <CustomButton
+              <Button
                 variant="outline"
                 onClick={onBack}
               >
                 Back to Narrative
-              </CustomButton>
+              </Button>
               
-              <CustomButton
+              <Button
                 onClick={onExport}
                 rightIcon={
                   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5">
@@ -63,7 +62,7 @@ const SlidePreview = ({ slides, onExport, onBack }: SlidePreviewProps) => {
                 }
               >
                 Export to Google Slides
-              </CustomButton>
+              </Button>
             </div>
           </div>
           <p className="text-lg text-games-navy/70 mt-2">
@@ -147,7 +146,7 @@ const SlidePreview = ({ slides, onExport, onBack }: SlidePreviewProps) => {
                   
                   <div className="flex justify-between items-center mt-6">
                     <div className="flex space-x-3">
-                      <CustomButton
+                      <Button
                         variant="outline"
                         onClick={navigateToPrevious}
                         disabled={currentSlideIndex === 0}
@@ -158,9 +157,9 @@ const SlidePreview = ({ slides, onExport, onBack }: SlidePreviewProps) => {
                         }
                       >
                         Previous Slide
-                      </CustomButton>
+                      </Button>
                       
-                      <CustomButton
+                      <Button
                         onClick={navigateToNext}
                         disabled={currentSlideIndex === slides.length - 1}
                         rightIcon={
@@ -170,7 +169,7 @@ const SlidePreview = ({ slides, onExport, onBack }: SlidePreviewProps) => {
                         }
                       >
                         Next Slide
-                      </CustomButton>
+                      </Button>
                     </div>
                     
                     <div className="text-sm text-games-navy">

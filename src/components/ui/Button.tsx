@@ -1,16 +1,39 @@
 
 import React from 'react';
 import { cn } from '@/lib/utils';
+import { cva, type VariantProps } from "class-variance-authority";
 
-interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: 'primary' | 'secondary' | 'outline' | 'ghost' | 'link';
-  size?: 'sm' | 'md' | 'lg';
+export const buttonVariants = cva(
+  'relative inline-flex items-center justify-center font-medium transition-colors rounded-lg focus:outline-none disabled:opacity-50 disabled:pointer-events-none shadow-sm',
+  {
+    variants: {
+      variant: {
+        primary: 'bg-games-blue text-white hover:bg-games-blue/90 focus:ring-2 focus:ring-games-blue/20',
+        secondary: 'bg-games-slate text-games-navy hover:bg-games-silver focus:ring-2 focus:ring-games-navy/10',
+        outline: 'border border-games-silver bg-transparent text-games-navy hover:bg-games-slate focus:ring-2 focus:ring-games-navy/10',
+        ghost: 'bg-transparent text-games-navy hover:bg-games-slate focus:ring-2 focus:ring-games-navy/10',
+        link: 'bg-transparent text-games-blue hover:underline p-0 h-auto shadow-none',
+      },
+      size: {
+        sm: 'h-9 px-3 text-sm',
+        md: 'h-10 px-4',
+        lg: 'h-12 px-6 text-lg',
+      },
+    },
+    defaultVariants: {
+      variant: 'primary',
+      size: 'md',
+    },
+  }
+);
+
+interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement>, VariantProps<typeof buttonVariants> {
   isLoading?: boolean;
   leftIcon?: React.ReactNode;
   rightIcon?: React.ReactNode;
 }
 
-const CustomButton = React.forwardRef<HTMLButtonElement, ButtonProps>(
+const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   (
     {
       className,
@@ -25,26 +48,10 @@ const CustomButton = React.forwardRef<HTMLButtonElement, ButtonProps>(
     },
     ref
   ) => {
-    const variants = {
-      primary: 'bg-games-blue text-white hover:bg-games-blue/90 focus:ring-2 focus:ring-games-blue/20',
-      secondary: 'bg-games-slate text-games-navy hover:bg-games-silver focus:ring-2 focus:ring-games-navy/10',
-      outline: 'border border-games-silver bg-transparent text-games-navy hover:bg-games-slate focus:ring-2 focus:ring-games-navy/10',
-      ghost: 'bg-transparent text-games-navy hover:bg-games-slate focus:ring-2 focus:ring-games-navy/10',
-      link: 'bg-transparent text-games-blue hover:underline p-0 h-auto',
-    };
-
-    const sizes = {
-      sm: 'h-9 px-3 text-sm',
-      md: 'h-10 px-4',
-      lg: 'h-12 px-6 text-lg',
-    };
-
     return (
       <button
         className={cn(
-          'relative inline-flex items-center justify-center font-medium transition-colors rounded-lg focus:outline-none disabled:opacity-50 disabled:pointer-events-none',
-          variants[variant],
-          sizes[size],
+          buttonVariants({ variant, size }),
           variant !== 'link' && 'shadow-sm',
           className
         )}
@@ -78,7 +85,7 @@ const CustomButton = React.forwardRef<HTMLButtonElement, ButtonProps>(
         )}
         <span
           className={cn(
-            'flex items-center gap-2',
+            "flex items-center gap-2",
             isLoading && 'opacity-0'
           )}
         >
@@ -91,6 +98,6 @@ const CustomButton = React.forwardRef<HTMLButtonElement, ButtonProps>(
   }
 );
 
-CustomButton.displayName = 'CustomButton';
+Button.displayName = 'Button';
 
-export default CustomButton;
+export default Button;

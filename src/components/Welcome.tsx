@@ -1,7 +1,6 @@
-
 import React, { useState } from 'react';
 import { cn } from '@/lib/utils';
-import CustomButton from './ui/Button';
+import Button from './ui/Button';
 
 interface WelcomeProps {
   onStart: (data: {
@@ -136,7 +135,7 @@ const Welcome = ({ onStart }: WelcomeProps) => {
           </div>
           
           <div className="flex justify-end pt-4">
-            <CustomButton
+            <Button
               type="submit"
               size="lg"
               disabled={!clientName || !industry}
@@ -147,7 +146,7 @@ const Welcome = ({ onStart }: WelcomeProps) => {
               }
             >
               Create Project
-            </CustomButton>
+            </Button>
           </div>
         </form>
         
