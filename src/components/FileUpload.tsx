@@ -1,21 +1,36 @@
 
 import React, { useState } from 'react';
 import Button from '@/components/ui/button';
-import { cn } from '@/lib/utils';
+import { Card, CardContent } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { useToast } from '@/hooks/use-toast';
 import { processDocument, prioritizeDocuments } from '@/lib/document-processing';
-import { toast } from '@/hooks/use-toast';
+import { analyzeClientMaterials } from '@/services/claude-api';
+import { Upload, Link, FileText, X } from 'lucide-react';
 
 interface FileUploadProps {
-  onAnalyze: (files: File[], url: string) => void;
+  clientName?: string;
+  industry?: string;
+  onAnalyze: (analysis: any) => void;
   onSkip: () => void;
+  onBack?: () => void;
 }
 
-const FileUpload = ({ onAnalyze, onSkip }: FileUploadProps) => {
+const FileUpload: React.FC<FileUploadProps> = ({ 
+  clientName = '', 
+  industry = '', 
+  onAnalyze, 
+  onSkip, 
+  onBack 
+}) => {
+  const { toast } = useToast();
   const [files, setFiles] = useState<File[]>([]);
   const [url, setUrl] = useState('');
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [analysisProgress, setAnalysisProgress] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
-  const [isProcessing, setIsProcessing] = useState(false);
   
+  // Handle drag events
   const handleDragEnter = (e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
@@ -41,57 +56,118 @@ const FileUpload = ({ onAnalyze, onSkip }: FileUploadProps) => {
     const newFiles = Array.from(e.dataTransfer.files);
     if (newFiles.length > 0) {
       setFiles((prevFiles) => [...prevFiles, ...newFiles]);
+      
+      toast({
+        title: "Files added",
+        description: `Added ${newFiles.length} file(s)`,
+      });
     }
   };
   
+  // Handle file upload
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files?.length) {
       const newFiles = Array.from(e.target.files);
-      setFiles((prevFiles) => [...prevFiles, ...newFiles]);
+      setFiles(prev => [...prev, ...newFiles]);
+      
+      toast({
+        title: "Files added",
+        description: `Added ${newFiles.length} file(s)`,
+      });
     }
   };
   
+  // Remove a file
   const removeFile = (index: number) => {
-    setFiles((prevFiles) => prevFiles.filter((_, i) => i !== index));
+    setFiles(prev => prev.filter((_, i) => i !== index));
   };
   
-  const handleSubmit = async () => {
+  // Handle URL input
+  const handleUrlChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setUrl(e.target.value);
+  };
+  
+  // Process and analyze files
+  const handleAnalyze = async () => {
     if (files.length === 0 && !url) {
       toast({
-        title: "No content to analyze",
-        description: "Please upload files or provide a URL to continue",
+        title: "No files or URL",
+        description: "Please upload files or enter a URL to analyze",
         variant: "destructive"
       });
       return;
     }
-
-    setIsProcessing(true);
+    
+    setIsAnalyzing(true);
     
     try {
-      if (files.length > 0) {
-        const prioritizedFiles = prioritizeDocuments([...files]);
-        console.log('Prioritized files:', prioritizedFiles.map(f => f.name));
+      // Sort files by priority
+      const prioritizedFiles = prioritizeDocuments(files);
+      
+      // Process each file
+      const processedTexts: string[] = [];
+      
+      for (let i = 0; i < prioritizedFiles.length; i++) {
+        const file = prioritizedFiles[i];
+        setAnalysisProgress(Math.round((i / prioritizedFiles.length) * 100));
         
-        for (const file of prioritizedFiles.slice(0, 3)) {
-          try {
-            const result = await processDocument(file);
-            console.log(`Processed ${file.name}:`, result);
-          } catch (error) {
-            console.error(`Error processing ${file.name}:`, error);
-          }
+        try {
+          const result = await processDocument(file);
+          processedTexts.push(result.text);
+        } catch (error) {
+          console.error(`Error processing file ${file.name}:`, error);
+          toast({
+            title: "Processing error",
+            description: `Could not process ${file.name}`,
+            variant: "destructive"
+          });
         }
       }
       
-      onAnalyze(files, url);
+      // If URL is provided, process it too
+      if (url) {
+        try {
+          // In a real implementation, you'd process the URL content
+          processedTexts.push(`Content from URL: ${url}`);
+        } catch (error) {
+          console.error('Error processing URL:', error);
+          toast({
+            title: "URL processing error",
+            description: "Could not process the provided URL",
+            variant: "destructive"
+          });
+        }
+      }
+      
+      // Send to Claude for analysis if we have client info
+      let analysis = null;
+      if (clientName && industry) {
+        analysis = await analyzeClientMaterials({
+          clientName,
+          industry,
+          materials: processedTexts
+        });
+      }
+      
+      // Complete
+      setIsAnalyzing(false);
+      setAnalysisProgress(100);
+      
+      toast({
+        title: "Analysis complete",
+        description: "All materials have been processed and analyzed",
+      });
+      
+      onAnalyze(analysis || processedTexts);
     } catch (error) {
-      console.error('Error during document analysis:', error);
+      console.error('Error during analysis:', error);
+      setIsAnalyzing(false);
+      
       toast({
         title: "Analysis failed",
-        description: "There was an error processing your documents",
+        description: "An error occurred during analysis",
         variant: "destructive"
       });
-    } finally {
-      setIsProcessing(false);
     }
   };
   
@@ -109,11 +185,10 @@ const FileUpload = ({ onAnalyze, onSkip }: FileUploadProps) => {
         
         <div className="glass-panel rounded-2xl p-8 space-y-8">
           <div 
-            className={cn(
-              "border-2 border-dashed rounded-xl p-10 transition-all text-center",
-              isDragging ? "border-games-blue bg-games-blue/5" : "border-games-silver hover:border-games-blue/50",
-              files.length > 0 && "border-games-blue/30 bg-games-blue/5"
-            )}
+            className={`border-2 border-dashed rounded-xl p-10 transition-all text-center
+              ${isDragging ? "border-games-blue bg-games-blue/5" : "border-games-silver hover:border-games-blue/50"}
+              ${files.length > 0 ? "border-games-blue/30 bg-games-blue/5" : ""}
+            `}
             onDragEnter={handleDragEnter}
             onDragLeave={handleDragLeave}
             onDragOver={handleDragOver}
@@ -121,9 +196,7 @@ const FileUpload = ({ onAnalyze, onSkip }: FileUploadProps) => {
           >
             <div className="flex flex-col items-center justify-center">
               <div className="w-16 h-16 bg-games-slate rounded-full flex items-center justify-center mb-4">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-8 h-8 text-games-blue">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
-                </svg>
+                <Upload className="w-8 h-8 text-games-blue" />
               </div>
               <h3 className="text-lg font-medium text-games-navy">
                 Drag & Drop Files
@@ -150,15 +223,13 @@ const FileUpload = ({ onAnalyze, onSkip }: FileUploadProps) => {
           
           {files.length > 0 && (
             <div className="space-y-4">
-              <h3 className="text-lg font-medium text-games-navy">Uploaded Files</h3>
+              <h3 className="text-lg font-medium text-games-navy">Uploaded Files ({files.length})</h3>
               <div className="space-y-2 max-h-48 overflow-y-auto pr-2">
                 {files.map((file, index) => (
                   <div key={index} className="flex items-center justify-between bg-games-slate rounded-lg p-3">
                     <div className="flex items-center space-x-3">
                       <div className="w-8 h-8 bg-white rounded-md flex items-center justify-center">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5 text-games-navy">
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
-                        </svg>
+                        <FileText className="w-5 h-5 text-games-navy" />
                       </div>
                       <div className="text-sm truncate max-w-xs">
                         <p className="font-medium text-games-navy truncate">{file.name}</p>
@@ -169,9 +240,7 @@ const FileUpload = ({ onAnalyze, onSkip }: FileUploadProps) => {
                       onClick={() => removeFile(index)}
                       className="w-8 h-8 rounded-full hover:bg-games-silver flex items-center justify-center transition-colors"
                     >
-                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5 text-games-navy/70">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                      </svg>
+                      <X className="w-5 h-5 text-games-navy/70" />
                     </button>
                   </div>
                 ))}
@@ -185,31 +254,54 @@ const FileUpload = ({ onAnalyze, onSkip }: FileUploadProps) => {
               <input
                 type="url"
                 value={url}
-                onChange={(e) => setUrl(e.target.value)}
+                onChange={handleUrlChange}
                 placeholder="https://example.com"
                 className="w-full h-12 pl-10 pr-4 rounded-lg border border-games-silver focus:border-games-blue focus:outline-none focus:ring-1 focus:ring-games-blue/20 transition-all"
               />
               <div className="absolute left-3 top-1/2 transform -translate-y-1/2">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5 text-games-navy/60">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 21a9.004 9.004 0 008.716-6.747M12 21a9.004 9.004 0 01-8.716-6.747M12 21c2.485 0 4.5-4.03 4.5-9S14.485 3 12 3m0 18c-2.485 0-4.5-4.03-4.5-9S9.515 3 12 3m0 0a8.997 8.997 0 017.843 4.582M12 3a8.997 8.997 0 00-7.843 4.582m15.686 0A11.953 11.953 0 0112 10.5c-2.998 0-5.74-1.1-7.843-2.918m15.686 0A8.959 8.959 0 0121 12c0 .778-.099 1.533-.284 2.253m0 0A17.919 17.919 0 0112 16.5c-3.162 0-6.133-.815-8.716-2.247m0 0A9.015 9.015 0 013 12c0-1.605.42-3.113 1.157-4.418" />
-                </svg>
+                <Link className="w-5 h-5 text-games-navy/60" />
               </div>
             </div>
           </div>
           
+          {/* Progress bar */}
+          {isAnalyzing && (
+            <div className="space-y-2">
+              <h3 className="text-lg font-medium text-games-navy">Analyzing materials...</h3>
+              <div className="w-full bg-games-slate rounded-full h-2.5">
+                <div 
+                  className="bg-games-blue h-2.5 rounded-full transition-all duration-300" 
+                  style={{ width: `${analysisProgress}%` }}
+                ></div>
+              </div>
+              <p className="text-sm text-games-navy/70">
+                This may take a few minutes depending on the size and number of documents.
+              </p>
+            </div>
+          )}
+          
           <div className="flex justify-between pt-4">
-            <Button
-              variant="outline"
-              onClick={onSkip}
-            >
-              Skip This Step
-            </Button>
+            {onBack ? (
+              <Button
+                variant="outline"
+                onClick={onBack}
+              >
+                Back
+              </Button>
+            ) : (
+              <Button
+                variant="outline"
+                onClick={onSkip}
+              >
+                Skip This Step
+              </Button>
+            )}
             
             <Button
-              onClick={handleSubmit}
-              disabled={files.length === 0 && !url || isProcessing}
+              onClick={handleAnalyze}
+              disabled={isAnalyzing || (files.length === 0 && !url)}
               rightIcon={
-                isProcessing ? (
+                isAnalyzing ? (
                   <svg className="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
@@ -221,7 +313,7 @@ const FileUpload = ({ onAnalyze, onSkip }: FileUploadProps) => {
                 )
               }
             >
-              {isProcessing ? "Processing..." : "Analyze Materials"}
+              {isAnalyzing ? "Processing..." : "Analyze Materials"}
             </Button>
           </div>
         </div>
