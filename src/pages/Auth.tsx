@@ -1,6 +1,6 @@
 
 import { useState } from 'react';
-import { Button } from '@/components/ui/button';
+import Button from '@/components/ui/button';
 import Login from '@/components/Login';
 import Signup from '@/components/Signup';
 
@@ -12,14 +12,14 @@ const Auth = () => {
       <div className="w-full max-w-md mb-6">
         <div className="flex rounded-lg overflow-hidden border">
           <Button
-            variant={showLogin ? "default" : "ghost"}
+            variant={showLogin ? "primary" : "ghost"}
             className={`flex-1 rounded-none ${showLogin ? "" : "hover:bg-transparent"}`}
             onClick={() => setShowLogin(true)}
           >
             Sign In
           </Button>
           <Button
-            variant={!showLogin ? "default" : "ghost"}
+            variant={!showLogin ? "primary" : "ghost"}
             className={`flex-1 rounded-none ${!showLogin ? "" : "hover:bg-transparent"}`}
             onClick={() => setShowLogin(false)}
           >
