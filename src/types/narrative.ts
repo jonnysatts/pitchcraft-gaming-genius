@@ -7,6 +7,13 @@ export interface NarrativeSection {
   isCompleted: boolean;
 }
 
+export interface Slide {
+  id: string;
+  title: string;
+  type: string;
+  content: string;
+}
+
 export interface AnalysisResult {
   business_challenges: {
     challenge: string;
