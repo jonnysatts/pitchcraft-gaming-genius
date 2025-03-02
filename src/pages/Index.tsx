@@ -110,13 +110,13 @@ const Index = () => {
         id: 'credentials',
         title: 'Games Age Credentials',
         type: 'Credentials',
-        content: 'Australia's premier gaming venue network reaching 1M+ Australians annually',
+        content: "Australia's premier gaming venue network reaching 1M+ Australians annually",
       },
       {
         id: 'stats',
         title: 'Gaming by the Numbers',
         type: 'Statistics',
-        content: 'Gaming reaches 77% of Australia's online population',
+        content: "Gaming reaches 77% of Australia's online population",
       },
       {
         id: 'next-steps',

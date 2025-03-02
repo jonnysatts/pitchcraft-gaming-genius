@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import CustomButton from './ui/Button';
 import { cn } from '@/lib/utils';
@@ -21,13 +20,13 @@ const NarrativeBuilder = ({ onComplete, onBack }: NarrativeBuilderProps) => {
     {
       id: 'revolution',
       title: 'Gaming Revolution Context',
-      description: 'Establish why gaming is relevant to the client's business and audience.',
+      description: 'Establish why gaming is relevant to the client\'s business and audience.',
       content: '',
       isCompleted: false,
     },
     {
       id: 'landscape',
-      title: 'Client's Current Landscape',
+      title: 'Client\'s Current Landscape',
       description: 'Analyze current market position, challenges, and opportunities.',
       content: '',
       isCompleted: false,
