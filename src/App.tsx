@@ -31,6 +31,10 @@ const App = () => (
             />
             <Route path="/auth" element={<Auth />} />
             <Route path="/auth/callback" element={<AuthCallback />} />
+            
+            {/* Redirect /login to /auth for compatibility */}
+            <Route path="/login" element={<Navigate to="/auth" replace />} />
+            
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>

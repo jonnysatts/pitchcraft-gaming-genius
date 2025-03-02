@@ -53,7 +53,7 @@ const Login = () => {
   return (
     <Card className="w-full max-w-md">
       <CardHeader className="text-center">
-        <CardTitle className="text-2xl">Sign In</CardTitle>
+        <CardTitle className="text-2xl">Sign In to Your Account</CardTitle>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleEmailSignIn} className="space-y-4">
