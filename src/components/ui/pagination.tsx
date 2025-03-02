@@ -4,7 +4,8 @@ import { ChevronLeft, ChevronRight, MoreHorizontal } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 import Button from "@/components/ui/button"
-import type { ButtonProps } from "@/components/ui/button"
+import type { ButtonHTMLAttributes } from "react"
+import { buttonVariants } from "@/components/ui/button"
 
 interface PaginationProps extends React.HTMLAttributes<HTMLDivElement> {
   page: number
