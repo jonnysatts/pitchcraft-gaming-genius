@@ -73,7 +73,7 @@ export const getCurrentUser = async (): Promise<AuthUser | null> => {
     .eq('user_id', userData.user.id)
     .single();
     
-  const role = roleError ? 'standard' : roleData.role;
+  const role = roleError || !roleData ? 'standard' : roleData.role;
   
   return {
     id: userData.user.id,
@@ -98,7 +98,7 @@ export const onAuthStateChange = (callback: (user: AuthUser | null) => void) => 
         .eq('user_id', session.user.id)
         .single();
         
-      const role = roleData?.role || 'standard';
+      const role = !roleData ? 'standard' : roleData.role;
       
       callback({
         id: session.user.id,
